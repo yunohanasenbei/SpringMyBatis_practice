@@ -1,0 +1,63 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.example.dao.NewsDao">
+
+	<resultMap type="com.example.domain.News" id="joinedResult">
+		<id property="id" column="id" />
+		<result property="title" column="title" />
+		<result property="author" column="author" />
+		<result property="postDate" column="post_date" />
+		<association property="detail"
+			resultMap="newsDetailResult" />
+
+	<!-- NewsオブジェクトとMemberTypeオブジェクトの連携 -->
+		<collection property="targetList"
+			ofType="com.example.domain.MemberType">
+			<result property="name" column="name" />
+		</collection>
+
+	</resultMap>
+
+	<resultMap type="com.example.domain.NewsDetail"
+		id="newsDetailResult">
+		<id property="newsId" column="news_id" />
+		<result property="article" column="article" />
+		<result property="photo" column="photo" />
+	</resultMap>
+
+	<select id="selectAll" resultType="com.example.domain.News">
+		select id, title, author,
+		post_date as postDate
+		from news;
+	</select>
+
+	<select id="selectById" parameterType="int"
+		resultMap="joinedResult">
+		select
+		news.id,
+		news.title,
+		news.author,
+		news.post_date,
+		news_details.article,
+		news_details.photo,
+		member_types.name
+		from news
+		join news_details
+		on
+		news.id = news_details.news_id
+		left join news_targets
+		on news.id = news_targets.news_id
+		left join member_types
+		on news_targets.type_id = member_types.id
+		where news.id = #{id};
+	</select>
+
+	<insert id="insert" useGeneratedKeys="true" keyProperty="id"
+		parameterType="com.example.domain.News">
+		insert into news (title, author, post_date)
+		values
+		(#{title}, #{author}, #{postDate})
+	</insert>
+
+
+</mapper>
